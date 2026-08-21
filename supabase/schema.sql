@@ -1,7 +1,9 @@
--- Reckon database schema — Phase 1
+-- Reckon database schema — current as of Phase 2.
 --
--- Run against a fresh Supabase project via the SQL Editor, or via the
--- Supabase CLI (`supabase db push`) once migrations are set up.
+-- This file is the full schema for a fresh project. An already-provisioned
+-- project (like the live one) instead applied this as Phase 1, then each
+-- file in supabase/migrations/ in order — see that directory for the
+-- history of how the schema below was arrived at incrementally.
 --
 -- Design notes:
 --   - `profiles` extends `auth.users` 1:1 (Supabase convention) and is
@@ -20,10 +22,13 @@
 --     not CASCADE, and keeps a denormalised `goal_name_snapshot` (captured
 --     at contribution time) so history still reads sensibly once the goal
 --     row is gone.
---   - Phase 2+ tables (car/house scenarios, spending categories) are not
---     created here — this file only leaves room for them via
---     `goals.linked_scenario_type` / `linked_scenario_id`, nullable and
---     unused until that phase.
+--   - car_scenarios/house_scenarios link to a goal via `linked_goal_id` on
+--     the scenario itself (scenario -> goal), not the other way around —
+--     see migrations/0002 for why this superseded the Phase 1 placeholder
+--     columns goals.linked_scenario_type/linked_scenario_id.
+--   - spending_entries carries `source`/`external_transaction_id` from day
+--     one even though Phase 2 only ever writes `source = 'manual'` — so a
+--     later automated feed (Open Banking) can slot in without restructuring.
 
 -- ============================================================
 -- profiles
@@ -96,9 +101,6 @@ create table if not exists public.goals (
   target_amount numeric(12, 2) not null check (target_amount > 0),
   deadline date not null,
   priority integer not null default 0, -- lower = higher priority; user-reorderable
-  -- Phase 2+: link this goal to a car/house cost scenario. Unused in Phase 1.
-  linked_scenario_type text check (linked_scenario_type in ('car', 'house')),
-  linked_scenario_id uuid,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -157,6 +159,120 @@ create policy "goal nudges are owner-only" on public.goal_nudges
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 -- ============================================================
+-- car_scenarios
+-- ============================================================
+create table if not exists public.car_scenarios (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  name text not null,
+
+  -- finance
+  price numeric(12, 2) not null check (price >= 0),
+  deposit numeric(12, 2) not null default 0 check (deposit >= 0),
+  apr numeric(6, 3) not null default 0 check (apr >= 0), -- annual percentage rate, e.g. 8.9
+  term_months integer not null check (term_months > 0),
+
+  -- running costs
+  insurance_annual numeric(12, 2) not null default 0 check (insurance_annual >= 0),
+  road_tax_annual numeric(12, 2) not null default 0 check (road_tax_annual >= 0),
+  fuel_maintenance_monthly numeric(12, 2) not null default 0 check (fuel_maintenance_monthly >= 0),
+  mot_due_date date, -- reminder only, not part of the cost total — see docs/car-house-costs.md
+
+  linked_goal_id uuid references public.goals (id) on delete set null,
+
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists car_scenarios_user_id_idx on public.car_scenarios (user_id);
+
+alter table public.car_scenarios enable row level security;
+
+create policy "car scenarios are owner-only" on public.car_scenarios
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- ============================================================
+-- house_scenarios
+-- ============================================================
+create table if not exists public.house_scenarios (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  name text not null,
+  mode text not null check (mode in ('rent', 'mortgage')),
+
+  -- rent mode (all monthly figures, per the brief)
+  monthly_rent numeric(12, 2) check (monthly_rent >= 0),
+  monthly_bills numeric(12, 2) check (monthly_bills >= 0),
+  council_tax_monthly numeric(12, 2) check (council_tax_monthly >= 0),
+
+  -- mortgage mode
+  loan_amount numeric(12, 2) check (loan_amount >= 0),
+  interest_rate_apr numeric(6, 3) check (interest_rate_apr >= 0),
+  term_years integer check (term_years > 0),
+  buildings_insurance_annual numeric(12, 2) check (buildings_insurance_annual >= 0),
+  council_tax_annual numeric(12, 2) check (council_tax_annual >= 0),
+
+  linked_goal_id uuid references public.goals (id) on delete set null,
+
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+
+  constraint house_scenario_mode_fields_present check (
+    (mode = 'rent' and monthly_rent is not null)
+    or (mode = 'mortgage' and loan_amount is not null and interest_rate_apr is not null and term_years is not null)
+  )
+);
+
+create index if not exists house_scenarios_user_id_idx on public.house_scenarios (user_id);
+
+alter table public.house_scenarios enable row level security;
+
+create policy "house scenarios are owner-only" on public.house_scenarios
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- ============================================================
+-- spending_categories — fully user-defined, no fixed list
+-- ============================================================
+create table if not exists public.spending_categories (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  name text not null,
+  created_at timestamptz not null default now(),
+  unique (user_id, name)
+);
+
+create index if not exists spending_categories_user_id_idx on public.spending_categories (user_id);
+
+alter table public.spending_categories enable row level security;
+
+create policy "spending categories are owner-only" on public.spending_categories
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- ============================================================
+-- spending_entries — manual now; shaped for an automated feed later
+-- ============================================================
+create table if not exists public.spending_entries (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  category_id uuid references public.spending_categories (id) on delete set null,
+  category_name_snapshot text not null,
+  label text not null,
+  amount numeric(12, 2) not null check (amount > 0),
+  entry_date date not null,
+  source text not null default 'manual' check (source in ('manual')), -- widen when Open Banking lands
+  external_transaction_id text, -- unused until an automated feed exists; for future dedup
+  created_at timestamptz not null default now()
+);
+
+create index if not exists spending_entries_user_id_date_idx on public.spending_entries (user_id, entry_date desc);
+create index if not exists spending_entries_category_id_idx on public.spending_entries (category_id);
+
+alter table public.spending_entries enable row level security;
+
+create policy "spending entries are owner-only" on public.spending_entries
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- ============================================================
 -- updated_at trigger helper
 -- ============================================================
 create or replace function public.set_updated_at()
@@ -173,4 +289,12 @@ create trigger income_targets_set_updated_at
 
 create trigger goals_set_updated_at
   before update on public.goals
+  for each row execute function public.set_updated_at();
+
+create trigger car_scenarios_set_updated_at
+  before update on public.car_scenarios
+  for each row execute function public.set_updated_at();
+
+create trigger house_scenarios_set_updated_at
+  before update on public.house_scenarios
   for each row execute function public.set_updated_at();
