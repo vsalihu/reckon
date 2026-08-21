@@ -25,6 +25,19 @@ export async function createSpendingCategory(_prevState: ActionState, formData: 
   return {};
 }
 
+/** Tags a category for the 50/30/20 check — see docs/budget-rule.md. Empty selection clears the tag. */
+export async function setCategoryBudgetGroup(categoryId: string, budgetGroup: string): Promise<void> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const value = budgetGroup === "" ? null : budgetGroup;
+  await supabase.from("spending_categories").update({ budget_group: value }).eq("id", categoryId).eq("user_id", user.id);
+  revalidatePath("/spending");
+}
+
 export async function deleteSpendingCategory(categoryId: string): Promise<void> {
   const supabase = await createClient();
   // Entries survive — category_id is ON DELETE SET NULL, category_name_snapshot preserves the label.
