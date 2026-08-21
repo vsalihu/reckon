@@ -6,7 +6,12 @@ a house deposit, whatever's next). Log what you earn, log what you save, and
 see clearly whether your saving rate is actually keeping pace with your
 income, not just the calendar.
 
-**Status:** Phase 1 in active development. Not yet deployed.
+**Status:** [v0.1.0](https://github.com/vsalihu/reckon/releases/tag/v0.1.0) —
+the Phase 1 core loop (auth, income logging, take-home estimate, savings
+goals with nudges) is built and verified against the live Supabase project.
+Not yet deployed to production. Google OAuth is implemented but not yet
+enabled (needs a Google Cloud OAuth client configured in the Supabase
+dashboard).
 
 ## Stack
 
@@ -41,8 +46,14 @@ migrations are introduced.
 ```bash
 npm run test        # unit tests (Vitest) — tax/NI, goal pace logic, etc.
 npm run test:watch  # unit tests, watch mode
-npm run test:e2e     # end-to-end tests (Playwright) — needs `npm run dev` reachable
+npm run test:e2e    # end-to-end tests (Playwright) — starts its own dev server automatically
 ```
+
+The e2e specs (`e2e/`) run against your real `.env.local` Supabase project — `income.spec.ts` and
+`goals.spec.ts` use the service-role key to create/delete pre-confirmed test users via the admin
+API, sign in through the real UI, and clean up after themselves. `sign-up.spec.ts` exercises the
+actual `signUp()` email flow, which can occasionally hit Supabase's shared email rate limit under
+heavy local iteration — that's an environment constraint, not an app bug.
 
 ## Project structure
 
