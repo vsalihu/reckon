@@ -101,6 +101,10 @@ create table if not exists public.goals (
   target_amount numeric(12, 2) not null check (target_amount > 0),
   deadline date not null,
   priority integer not null default 0, -- lower = higher priority; user-reorderable
+  -- which of {25,50,75,100} have already triggered their one-time
+  -- milestone celebration — see migrations/0003 for why this stays put
+  -- even if a later correction drops the funded % back down.
+  celebrated_milestones smallint[] not null default '{}',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -127,6 +131,7 @@ create table if not exists public.goal_contributions (
   goal_name_snapshot text not null,
   amount numeric(12, 2) not null check (amount > 0),
   contributed_at date not null default current_date,
+  note text, -- optional context, e.g. round-up provenance; null for ordinary contributions
   created_at timestamptz not null default now()
 );
 
