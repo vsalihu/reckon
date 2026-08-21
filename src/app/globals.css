@@ -1,0 +1,85 @@
+@import "tailwindcss";
+
+/*
+ * Reckon "ledger" design system.
+ * Dark navy/brass-gold in dark mode; warm parchment/ink in light mode.
+ * Both are treated as first-class, not a light theme with dark bolted on.
+ */
+
+:root {
+  --color-ink: #0e1b29;
+  --color-ink-raised: #142a3f;
+  --color-gold: #c99a3e;
+  --color-gold-soft: #e0be7a;
+
+  /* light mode: parchment ledger paper */
+  --background: #f6f1e7;
+  --surface: #ffffff;
+  --surface-raised: #fbf8f1;
+  --foreground: var(--color-ink);
+  --foreground-muted: #4a5b6c;
+  --border: #ded2b8;
+  --accent: var(--color-gold);
+  --accent-foreground: var(--color-ink);
+  --positive: #2f7a52;
+  --negative: #b3452f;
+}
+
+:root[data-theme="dark"] {
+  --background: var(--color-ink);
+  --surface: var(--color-ink-raised);
+  --surface-raised: #1b3450;
+  --foreground: #f1e9d8;
+  --foreground-muted: #9fb0c2;
+  --border: #26405c;
+  --accent: var(--color-gold);
+  --accent-foreground: var(--color-ink);
+  --positive: #5fbf8f;
+  --negative: #e07a5f;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --background: var(--color-ink);
+    --surface: var(--color-ink-raised);
+    --surface-raised: #1b3450;
+    --foreground: #f1e9d8;
+    --foreground-muted: #9fb0c2;
+    --border: #26405c;
+    --accent: var(--color-gold);
+    --accent-foreground: var(--color-ink);
+    --positive: #5fbf8f;
+    --negative: #e07a5f;
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-foreground-muted: var(--foreground-muted);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-positive: var(--positive);
+  --color-negative: var(--negative);
+  --font-display: var(--font-fraunces);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-ibm-plex-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-numeric {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
