@@ -14,10 +14,12 @@
 --     `owner_type` is always 'user' and `owner_id` is the creator's user
 --     id; a future migration can introduce a `households` table and swap
 --     the type without reshaping `goal_contributions`.
---   - Deleting a goal must NOT cascade-delete its contributions (the brief
---     is explicit about this) — `goal_contributions.goal_id` uses
---     ON DELETE SET NULL, not CASCADE, and keeps a denormalised
---     `goal_name_snapshot` so history reads sensibly after the goal is gone.
+--   - Deleting a goal is a real DELETE of the `goals` row (the brief is
+--     explicit: "removes the goal itself"), but must NOT cascade-delete its
+--     contributions — `goal_contributions.goal_id` uses ON DELETE SET NULL,
+--     not CASCADE, and keeps a denormalised `goal_name_snapshot` (captured
+--     at contribution time) so history still reads sensibly once the goal
+--     row is gone.
 --   - Phase 2+ tables (car/house scenarios, spending categories) are not
 --     created here — this file only leaves room for them via
 --     `goals.linked_scenario_type` / `linked_scenario_id`, nullable and
@@ -97,7 +99,6 @@ create table if not exists public.goals (
   -- Phase 2+: link this goal to a car/house cost scenario. Unused in Phase 1.
   linked_scenario_type text check (linked_scenario_type in ('car', 'house')),
   linked_scenario_id uuid,
-  archived_at timestamptz, -- soft "deleted" marker — see contributions note below
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -116,9 +117,6 @@ create policy "goals are owner-only" on public.goals
 -- goal_id uses ON DELETE SET NULL (not CASCADE): deleting a goal must not
 -- delete the money log. name_snapshot preserves what the goal was called
 -- so history still reads sensibly once the goal record is gone.
--- Phase 1 "delete" should actually just set goals.archived_at and hide the
--- goal from active views, keeping goal_id intact; a hard DB-level delete of
--- the goal row is a secondary/rare path this FK also has to survive.
 -- ============================================================
 create table if not exists public.goal_contributions (
   id uuid primary key default gen_random_uuid(),
