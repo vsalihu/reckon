@@ -22,7 +22,11 @@ export default async function DashboardPage() {
 
   if (!user) redirect("/sign-in");
 
-  const { data: profile } = await supabase.from("profiles").select("currency").eq("id", user.id).maybeSingle();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("currency, pension_contribution_percent")
+    .eq("id", user.id)
+    .maybeSingle();
 
   if (!profile) redirect("/onboarding/currency");
 
@@ -37,7 +41,7 @@ export default async function DashboardPage() {
       .maybeSingle(),
     supabase
       .from("income_entries")
-      .select("id, label, amount, entry_date")
+      .select("id, label, amount, entry_date, employment_type")
       .eq("user_id", user.id)
       .order("entry_date", { ascending: false }),
     supabase
@@ -50,6 +54,13 @@ export default async function DashboardPage() {
 
   const loggedTotal = (entries ?? []).reduce((sum, entry) => sum + Number(entry.amount), 0);
   const annualGrossTarget = target ? Number(target.annual_gross_amount) : 0;
+  const payeGross = (entries ?? [])
+    .filter((e) => e.employment_type === "paye")
+    .reduce((sum, e) => sum + Number(e.amount), 0);
+  const selfEmployedProfit = (entries ?? [])
+    .filter((e) => e.employment_type === "self_employed")
+    .reduce((sum, e) => sum + Number(e.amount), 0);
+  const pensionContributionPercent = Number(profile.pension_contribution_percent ?? 0);
 
   const goalStatuses = evaluateGoals({
     goals: (goals ?? []).map((g) => ({
@@ -94,7 +105,12 @@ export default async function DashboardPage() {
         </details>
       </section>
 
-      <TakeHomeCard grossAnnual={annualGrossTarget} currency={currency} />
+      <TakeHomeCard
+        payeGross={payeGross}
+        selfEmployedProfit={selfEmployedProfit}
+        pensionContributionPercent={pensionContributionPercent}
+        currency={currency}
+      />
 
       <section className="rounded-2xl border border-border bg-surface p-6">
         <h2 className="mb-4 font-display text-lg text-foreground">Log a pay entry</h2>

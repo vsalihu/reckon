@@ -54,6 +54,20 @@ export function EntryForm() {
             className="h-11 w-full rounded-lg border border-border bg-surface px-3 text-foreground outline-none focus:border-accent"
           />
         </div>
+        <div className="col-span-2">
+          <label htmlFor="employment_type" className="mb-1.5 block text-sm text-foreground-muted">
+            Employment type
+          </label>
+          <select
+            id="employment_type"
+            name="employment_type"
+            defaultValue="paye"
+            className="h-11 w-full rounded-lg border border-border bg-surface px-3 text-foreground outline-none focus:border-accent"
+          >
+            <option value="paye">PAYE (employed)</option>
+            <option value="self_employed">Self-employed</option>
+          </select>
+        </div>
       </div>
       {state.error ? <p className="text-sm text-negative">{state.error}</p> : null}
       <SubmitButton>Log pay entry</SubmitButton>

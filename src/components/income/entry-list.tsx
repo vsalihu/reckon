@@ -6,7 +6,13 @@ export interface IncomeEntryRow {
   label: string;
   amount: number;
   entry_date: string;
+  employment_type: "paye" | "self_employed";
 }
+
+const EMPLOYMENT_TYPE_LABEL: Record<IncomeEntryRow["employment_type"], string> = {
+  paye: "PAYE",
+  self_employed: "Self-employed",
+};
 
 export function EntryList({ entries, currency }: { entries: IncomeEntryRow[]; currency: CurrencyCode }) {
   if (entries.length === 0) {
@@ -19,7 +25,9 @@ export function EntryList({ entries, currency }: { entries: IncomeEntryRow[]; cu
         <li key={entry.id} className="flex items-center justify-between gap-3 py-3">
           <div>
             <p className="text-sm text-foreground">{entry.label}</p>
-            <p className="text-xs text-foreground-muted">{new Date(entry.entry_date).toLocaleDateString("en-GB")}</p>
+            <p className="text-xs text-foreground-muted">
+              {EMPLOYMENT_TYPE_LABEL[entry.employment_type]} · {new Date(entry.entry_date).toLocaleDateString("en-GB")}
+            </p>
           </div>
           <div className="flex items-center gap-3">
             <span className="font-numeric text-sm text-foreground">{formatCurrency(entry.amount, currency)}</span>

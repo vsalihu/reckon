@@ -45,10 +45,14 @@ export async function logIncomeEntry(_prevState: AuthActionState, formData: Form
   const label = String(formData.get("label") ?? "").trim();
   const amount = Number(formData.get("amount"));
   const entryDate = String(formData.get("entry_date") ?? "");
+  const employmentType = String(formData.get("employment_type") ?? "paye");
 
   if (!label) return { error: "Give this pay entry a label." };
   if (!Number.isFinite(amount) || amount <= 0) return { error: "Enter a valid amount." };
   if (!entryDate) return { error: "Pick a date." };
+  if (employmentType !== "paye" && employmentType !== "self_employed") {
+    return { error: "Choose PAYE or self-employed." };
+  }
 
   const supabase = await createClient();
   const {
@@ -61,8 +65,29 @@ export async function logIncomeEntry(_prevState: AuthActionState, formData: Form
     label,
     amount,
     entry_date: entryDate,
+    employment_type: employmentType,
   });
 
+  if (error) return { error: error.message };
+
+  revalidatePath("/dashboard");
+  return {};
+}
+
+/** Updates the flat pension contribution percentage — PAYE gross only, see docs/mixed-income-tax.md. */
+export async function setPensionContribution(_prevState: AuthActionState, formData: FormData): Promise<AuthActionState> {
+  const percent = Number(formData.get("pension_contribution_percent"));
+  if (!Number.isFinite(percent) || percent < 0 || percent > 100) {
+    return { error: "Enter a percentage between 0 and 100." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "You need to be signed in." };
+
+  const { error } = await supabase.from("profiles").update({ pension_contribution_percent: percent }).eq("id", user.id);
   if (error) return { error: error.message };
 
   revalidatePath("/dashboard");
