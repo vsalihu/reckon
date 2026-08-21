@@ -7,6 +7,57 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-08-21
+
+Phase 4 (Income & tax intelligence): mixed PAYE/self-employed tax
+calculation, pension modelling, payslip comparison, and a pay rise
+simulator.
+
+### Added
+
+- **Mixed PAYE + self-employed tax**: employment type is now per income
+  entry (`income_entries.employment_type`), not per account, so a user
+  can log some entries PAYE and others self-employed within the same tax
+  year. Income Tax is calculated once on combined taxable income (one
+  Personal Allowance, one set of bands); National Insurance is
+  calculated separately per income type — Class 1 on PAYE only, Class 2/4
+  on self-employed profit only — and summed only at the end. Documented
+  in detail in `docs/mixed-income-tax.md`, since combining the NI bases
+  would be a subtle and easy mistake.
+- **Class 2/4 NI rates**: isolated in `rates.uk.self-employed.2025-26.ts`,
+  same pattern as the existing PAYE rates file. Verified 2025/26 figures
+  against gov.uk before implementing, and caught a real discrepancy in
+  the process: Class 2 NI stopped being mandatory for most self-employed
+  people from April 2024 — profits at/above the £6,845 Small Profits
+  Threshold get an NI credit for £0, not a flat weekly charge. Modelled
+  as £0 mandatory with the voluntary £3.50/week option (below the
+  threshold) surfaced separately rather than silently charged or hidden.
+- **Pension contribution modelling**: a flat percentage of PAYE gross
+  only (self-employed pension contributions work differently, so
+  explicitly out of scope, per the brief). Shows as its own clearly
+  labelled deduction line in the take-home breakdown, kept distinct from
+  tax/NI.
+- **Take-home estimate reworked**: now aggregates logged income entries
+  by employment type for the combined estimate, rather than the single
+  manually-set annual target (which stays as the separate
+  progress-tracking goal, unaffected by employment type) — per the
+  brief's "annual figures are an aggregate across mixed entry types."
+- **Payslip comparison** (`/tax-tools`): paste a real payslip's
+  gross/net for a period; flags a mismatch without claiming either
+  figure is "wrong" — a comparison tool, not a source of truth.
+- **Pay rise simulator** (`/tax-tools`): given a new salary, shows the
+  real extra take-home (not the raw increase) plus an effective rate.
+  Thin wrapper around the existing mixed-income engine — no new tax
+  logic.
+- Migration 0004: two additive columns
+  (`income_entries.employment_type`, `profiles.pension_contribution_percent`)
+  — no new tables.
+- 27 new unit tests (97 total) specifically targeting mixed scenarios,
+  Class 2/4 boundaries, pension scoping, payslip tolerance, and pay-rise
+  band-crossing behavior.
+- 5 new Playwright e2e tests (27 total, 26 passing without the one
+  Supabase-email-rate-limited exception).
+
 ## [0.3.0] - 2026-08-21
 
 Phase 3 (Goals & motivation): streaks, milestone celebrations, a "what if"
@@ -143,7 +194,8 @@ accurate take-home pay, create and fund savings goals.
   creation/funding/deletion against a real dev server and the live
   Supabase project.
 
-[Unreleased]: https://github.com/vsalihu/reckon/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/vsalihu/reckon/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/vsalihu/reckon/releases/tag/v0.4.0
 [0.3.0]: https://github.com/vsalihu/reckon/releases/tag/v0.3.0
 [0.2.0]: https://github.com/vsalihu/reckon/releases/tag/v0.2.0
 [0.1.0]: https://github.com/vsalihu/reckon/releases/tag/v0.1.0

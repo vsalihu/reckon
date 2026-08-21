@@ -6,14 +6,15 @@ a house deposit, whatever's next). Log what you earn, log what you save, and
 see clearly whether your saving rate is actually keeping pace with your
 income, not just the calendar.
 
-**Status:** [v0.3.0](https://github.com/vsalihu/reckon/releases/tag/v0.3.0) —
+**Status:** [v0.4.0](https://github.com/vsalihu/reckon/releases/tag/v0.4.0) —
 Phase 1 (auth, income logging, take-home estimate, savings goals with
 nudges), Phase 2 (car/house cost calculators, spending tracking, overview
-dashboard), and Phase 3 (streaks, milestone celebrations, a "what if"
-contribution slider, manual round-ups) are built and verified against the
-live Supabase project. Not yet deployed to production. Google OAuth is
-implemented but not yet enabled (needs a Google Cloud OAuth client
-configured in the Supabase dashboard).
+dashboard), Phase 3 (streaks, milestone celebrations, a "what if"
+contribution slider, manual round-ups), and Phase 4 (mixed PAYE/self-employed
+tax, pension modelling, payslip comparison, pay rise simulator) are built and
+verified against the live Supabase project. Not yet deployed to production.
+Google OAuth is implemented but not yet enabled (needs a Google Cloud OAuth
+client configured in the Supabase dashboard).
 
 ## Stack
 
@@ -123,11 +124,17 @@ contribution slider on each goal's detail page, and manual round-ups from a
 spending entry to a goal. All built on the existing goals/contributions
 data — no new tables.
 
-Next up (not yet built), one backlog group at a time: Income & tax
-intelligence (payslip comparison, freelance mode, pension modelling, pay
-rise simulator), Car & house extras (lease-vs-finance, mortgage
-overpayment, stamp duty/LISA), and Spending & budgeting (50/30/20 check,
-recurring bill tracker) — followed eventually by UK Open Banking
+Phase 4 (done, v0.4.0) — Income & tax intelligence: mixed PAYE +
+self-employed tax calculation (employment type per income entry, combined
+Income Tax against one Personal Allowance, National Insurance calculated
+separately per income type — see `docs/mixed-income-tax.md`), a flat-rate
+pension contribution deduction, a payslip comparison tool, and a pay rise
+simulator.
+
+Next up (not yet built), one backlog group at a time: Car & house extras
+(lease-vs-finance, mortgage overpayment, stamp duty/LISA) and Spending &
+budgeting (50/30/20 check, recurring bill tracker) — followed eventually by
+UK Open Banking
 integration (see `docs/car-house-costs.md` and the
 `source`/`external_transaction_id` columns on `spending_entries` for how
 that's meant to slot in without a restructure), social/accountability
