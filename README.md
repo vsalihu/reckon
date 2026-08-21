@@ -6,14 +6,16 @@ a house deposit, whatever's next). Log what you earn, log what you save, and
 see clearly whether your saving rate is actually keeping pace with your
 income, not just the calendar.
 
-**Status:** [v0.4.0](https://github.com/vsalihu/reckon/releases/tag/v0.4.0) —
+**Status:** [v0.5.0](https://github.com/vsalihu/reckon/releases/tag/v0.5.0) —
 Phase 1 (auth, income logging, take-home estimate, savings goals with
 nudges), Phase 2 (car/house cost calculators, spending tracking, overview
 dashboard), Phase 3 (streaks, milestone celebrations, a "what if"
-contribution slider, manual round-ups), and Phase 4 (mixed PAYE/self-employed
-tax, pension modelling, payslip comparison, pay rise simulator) are built and
-verified against the live Supabase project. Not yet deployed to production.
-Google OAuth is implemented but not yet enabled (needs a Google Cloud OAuth
+contribution slider, manual round-ups), Phase 4 (mixed PAYE/self-employed
+tax, pension modelling, payslip comparison, pay rise simulator), and Phase 5
+(lease vs finance vs cash, mortgage overpayment, stamp duty for all three UK
+nations, LISA bonus tracker) are built and verified against the live
+Supabase project. Not yet deployed to production. Google OAuth is
+implemented but not yet enabled (needs a Google Cloud OAuth
 client configured in the Supabase dashboard).
 
 ## Stack
@@ -131,9 +133,15 @@ separately per income type — see `docs/mixed-income-tax.md`), a flat-rate
 pension contribution deduction, a payslip comparison tool, and a pay rise
 simulator.
 
-Next up (not yet built), one backlog group at a time: Car & house extras
-(lease-vs-finance, mortgage overpayment, stamp duty/LISA) and Spending &
-budgeting (50/30/20 check, recurring bill tracker) — followed eventually by
+Phase 5 (done, v0.5.0) — Car & house extras: lease vs finance vs cash
+comparison for a car scenario, mortgage overpayment modelling (real
+month-by-month amortization recalculation), stamp duty calculators for all
+three UK nations (SDLT/LBTT/LTT — genuinely separate systems, see
+`docs/stamp-duty.md`), and a LISA bonus tracker linked into the existing
+goals system.
+
+Next up (not yet built), the last backlog group: Spending & budgeting
+(50/30/20 check, recurring bill tracker) — followed eventually by
 UK Open Banking
 integration (see `docs/car-house-costs.md` and the
 `source`/`external_transaction_id` columns on `spending_entries` for how

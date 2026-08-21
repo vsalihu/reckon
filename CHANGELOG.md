@@ -7,6 +7,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-08-21
+
+Phase 5 (Car & house extras): lease vs finance vs cash comparison,
+mortgage overpayment modelling, stamp duty across all three UK nations,
+and a LISA bonus tracker.
+
+### Added
+
+- **Lease vs finance vs cash**: any car scenario can now take an optional
+  lease quote; the scenario card shows a side-by-side comparison (total
+  over term, monthly cost, what you own at the end) for cash, finance
+  (reusing the existing amortization calc unchanged), and lease (a
+  user-entered quote — leasing math varies too much by provider to model
+  from first principles, per the brief).
+- **Mortgage overpayment**: mortgage scenarios can model a regular extra
+  monthly payment and/or a one-off lump sum at a chosen month. Interest
+  saved and time saved come from a real month-by-month amortization
+  simulation run twice (standard vs with overpayment), not an
+  approximation.
+- **Stamp duty across all three UK nations** — genuinely separate
+  calculators, not variations of one formula: SDLT (England/NI), LBTT
+  (Scotland), LTT (Wales), each with its own rate config file, its own
+  first-time-buyer relief (or lack of one — Wales has none), and its own
+  additional-property treatment (a flat surcharge in England/NI and
+  Scotland; a wholly separate band table in Wales, verified exactly
+  against gov.wales's own worked example). Rates researched and
+  cross-verified against gov.uk/revenue.scot/gov.wales directly before
+  implementing — documented with sources in
+  `docs/stamp-duty.md` and each rate file.
+- **LISA bonus tracker**: any goal can be marked as a Lifetime ISA; its
+  contributions are grouped by UK tax year (the £4,000 limit and £1,000
+  bonus cap reset annually) and the 25% bonus summed across years for an
+  accurate "total available toward the house" figure — not just the raw
+  contribution total. Verified current limits against gov.uk.
+- Migration 0005: five additive columns across `car_scenarios`,
+  `house_scenarios`, and `goals` — no new tables.
+- 36 new unit tests (133 total), including an exact match against
+  gov.wales's own £260k-second-home worked example (£15,950).
+- 6 new Playwright e2e tests (36 total, 35 passing without the one
+  Supabase-email-rate-limited exception).
+
 ## [0.4.0] - 2026-08-21
 
 Phase 4 (Income & tax intelligence): mixed PAYE/self-employed tax
@@ -194,7 +235,8 @@ accurate take-home pay, create and fund savings goals.
   creation/funding/deletion against a real dev server and the live
   Supabase project.
 
-[Unreleased]: https://github.com/vsalihu/reckon/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/vsalihu/reckon/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/vsalihu/reckon/releases/tag/v0.5.0
 [0.4.0]: https://github.com/vsalihu/reckon/releases/tag/v0.4.0
 [0.3.0]: https://github.com/vsalihu/reckon/releases/tag/v0.3.0
 [0.2.0]: https://github.com/vsalihu/reckon/releases/tag/v0.2.0
