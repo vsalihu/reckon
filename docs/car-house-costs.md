@@ -1,6 +1,7 @@
 # Car & house cost calculators
 
-Status: Phase 2. Implementation: `src/lib/finance/`.
+Status: Phase 2 (base calculators), extended in Phase 5 (lease/cash
+comparison, mortgage overpayment). Implementation: `src/lib/finance/`.
 
 ## Loan amortization
 
@@ -60,6 +61,50 @@ total = mortgagePayment + buildingsInsuranceAnnual / 12 + councilTaxAnnual / 12
 Scenarios are independent rows a user can create freely; the UI lists them
 side by side sorted by total monthly cost (cheapest first) so comparison
 doesn't require manual arithmetic.
+
+## Lease vs finance vs cash (Phase 5)
+
+`calculateCarOwnershipComparison()` puts three ownership paths side by
+side for the same car, using the running costs (insurance, road tax,
+fuel/maintenance) a scenario already has — they apply identically to all
+three paths, since they're a cost of driving the car, not of how it's
+paid for:
+
+- **Cash** — `price` paid upfront; monthly cost is running costs only;
+  owns the car from day one.
+- **Finance** — reuses `calculateCarMonthlyCost()` unchanged (the
+  existing amortizing-loan calculation); owns the car once the finance
+  is repaid. Modelled as HP-style (fully amortizing to zero balance) —
+  a PCP-style balloon payment at the end isn't modelled, since the
+  scenario has no balloon-payment field.
+- **Lease** — the user enters a monthly lease quote directly rather than
+  a calculated figure. Leasing math (residual values, mileage
+  allowances, provider margin) varies too much by deal to model from
+  first principles, so this is "enter what you were quoted, compare it
+  against the alternatives" — a comparison tool, not a lease-rate
+  calculator. Never owns the car; returned at the end of the term.
+
+The lease path only appears when a quote has actually been entered
+(`car_scenarios.lease_monthly_quote` is nullable) — no lease line is
+shown for a scenario nobody's got a lease quote for.
+
+## Mortgage overpayment (Phase 5)
+
+`calculateMortgageOverpaymentImpact()` runs a real month-by-month
+amortization simulation — not an approximation — twice: once with the
+standard payment only, once adding a monthly overpayment and/or a
+one-off lump sum at a chosen month. Each month: `interest = balance ×
+monthlyRate`, `principalPortion = payment − interest`,
+`balance −= principalPortion`, continuing until the balance clears. The
+difference between the two runs' total interest paid and months taken is
+the interest saved and time saved.
+
+This is why a lump sum paid earlier saves more than the same lump sum
+paid later — it reduces the balance interest is calculated against for
+more of the remaining term. The standard payment amount itself doesn't
+change when overpaying (it's still `calculateLoanPayment()`'s output);
+the overpayment is genuinely *extra*, which is what pays down the
+balance faster and shortens the schedule.
 
 ## Goal linking
 

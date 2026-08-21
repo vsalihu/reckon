@@ -116,6 +116,9 @@ create table if not exists public.goals (
   -- milestone celebration — see migrations/0003 for why this stays put
   -- even if a later correction drops the funded % back down.
   celebrated_milestones smallint[] not null default '{}',
+  -- marks this goal as LISA-linked so its detail view shows the 25%
+  -- government bonus alongside contributions — see docs/lisa-bonus.md.
+  is_lisa boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -194,6 +197,10 @@ create table if not exists public.car_scenarios (
   fuel_maintenance_monthly numeric(12, 2) not null default 0 check (fuel_maintenance_monthly >= 0),
   mot_due_date date, -- reminder only, not part of the cost total — see docs/car-house-costs.md
 
+  -- comparison input for the lease/finance/cash tool — "enter what you were
+  -- quoted," not a calculated figure. See docs/car-house-costs.md.
+  lease_monthly_quote numeric(12, 2) check (lease_monthly_quote is null or lease_monthly_quote >= 0),
+
   linked_goal_id uuid references public.goals (id) on delete set null,
 
   created_at timestamptz not null default now(),
@@ -227,6 +234,13 @@ create table if not exists public.house_scenarios (
   term_years integer check (term_years > 0),
   buildings_insurance_annual numeric(12, 2) check (buildings_insurance_annual >= 0),
   council_tax_annual numeric(12, 2) check (council_tax_annual >= 0),
+
+  -- mortgage overpayment modelling — only meaningful in mortgage mode; see
+  -- docs/car-house-costs.md. Month is 1-indexed from the mortgage start so
+  -- "no lump sum" (null) and "lump sum in month 1" are unambiguous.
+  overpayment_monthly numeric(12, 2) check (overpayment_monthly is null or overpayment_monthly >= 0),
+  overpayment_lump_sum numeric(12, 2) check (overpayment_lump_sum is null or overpayment_lump_sum >= 0),
+  overpayment_lump_sum_month integer check (overpayment_lump_sum_month is null or overpayment_lump_sum_month >= 1),
 
   linked_goal_id uuid references public.goals (id) on delete set null,
 
