@@ -6,15 +6,16 @@ a house deposit, whatever's next). Log what you earn, log what you save, and
 see clearly whether your saving rate is actually keeping pace with your
 income, not just the calendar.
 
-**Status:** [v0.5.0](https://github.com/vsalihu/reckon/releases/tag/v0.5.0) —
-Phase 1 (auth, income logging, take-home estimate, savings goals with
-nudges), Phase 2 (car/house cost calculators, spending tracking, overview
-dashboard), Phase 3 (streaks, milestone celebrations, a "what if"
-contribution slider, manual round-ups), Phase 4 (mixed PAYE/self-employed
-tax, pension modelling, payslip comparison, pay rise simulator), and Phase 5
-(lease vs finance vs cash, mortgage overpayment, stamp duty for all three UK
-nations, LISA bonus tracker) are built and verified against the live
-Supabase project. Not yet deployed to production. Google OAuth is
+**Status:** [v0.6.0](https://github.com/vsalihu/reckon/releases/tag/v0.6.0) —
+Phases 1 through 6 are complete: auth, income logging with an accurate UK
+take-home estimate (mixed PAYE/self-employed, pension modelling), savings
+goals with streaks/milestones/nudges/a "what if" slider, car and house cost
+calculators (finance, lease, cash, mortgage overpayment, stamp duty for all
+three UK nations), a LISA bonus tracker, spending tracking with a 50/30/20
+check, and a recurring bill tracker. This is a genuinely complete state
+relative to everything currently scoped — see the Roadmap below for what's
+deliberately deferred. Built and verified against the live Supabase project,
+not yet deployed to production. Google OAuth is
 implemented but not yet enabled (needs a Google Cloud OAuth
 client configured in the Supabase dashboard).
 
@@ -41,10 +42,11 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ### Database setup
 
-The full Phase 1 schema — tables, indexes, and Row Level Security policies —
+The full current schema — tables, indexes, and Row Level Security policies —
 lives in [`supabase/schema.sql`](supabase/schema.sql). Run it against a
-fresh Supabase project via the SQL Editor, or via the Supabase CLI once
-migrations are introduced.
+fresh Supabase project via the SQL Editor, or via the Supabase CLI. An
+already-provisioned project instead applied this as the Phase 1 base, then
+each file in [`supabase/migrations/`](supabase/migrations/) in order.
 
 ### Testing
 
@@ -140,14 +142,30 @@ three UK nations (SDLT/LBTT/LTT — genuinely separate systems, see
 `docs/stamp-duty.md`), and a LISA bonus tracker linked into the existing
 goals system.
 
-Next up (not yet built), the last backlog group: Spending & budgeting
-(50/30/20 check, recurring bill tracker) — followed eventually by
-UK Open Banking
-integration (see `docs/car-house-costs.md` and the
-`source`/`external_transaction_id` columns on `spending_entries` for how
-that's meant to slot in without a restructure), social/accountability
-features, and quality-of-life additions. Tracked internally and
-prioritized incrementally as the core product is live and in real use.
+Phase 6 (done, v0.6.0) — Spending & budgeting: a 50/30/20 rule check
+(categories tagged Needs/Wants/Savings, goal contributions counting
+automatically toward savings, after-tax income reusing the Phase 4
+take-home figure — see `docs/budget-rule.md`), and a recurring bill
+tracker (`docs/recurring-bills.md`) with upcoming-bills views, a
+monthly-commitment total, and a one-click "mark as paid" action.
+
+**This closes out the full currently-scoped feature backlog.** Three
+items remain deliberately deferred, not forgotten:
+
+- **UK Open Banking integration** — needs a live provider decision
+  (GoCardless's old free tier closed to new signups mid-2025; evaluate
+  Enable Banking, TrueLayer, or Yapily Connect, re-checking current
+  status when this starts). `spending_entries.source` and
+  `external_transaction_id` are already shaped for this to slot in
+  without a restructure.
+- **Shared household goals** — real data-model implications (goal
+  ownership isn't 1:1 with a user anymore) that haven't been decided yet.
+- **Anonymous savings benchmarking** — needs real aggregate UK savings
+  data; not something to build against placeholder numbers.
+
+With the backlog otherwise clear, deploying to Vercel (deferred since
+Phase 1) is a natural next step to consider, rather than assuming further
+feature work is automatically next.
 
 ## License
 

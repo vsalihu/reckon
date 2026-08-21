@@ -7,6 +7,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-08-21
+
+Phase 6 (Spending & budgeting): a 50/30/20 rule check and a recurring
+bill tracker — the last item in the currently-scoped feature backlog.
+
+### Added
+
+- **50/30/20 rule check**: each spending category can be tagged Needs,
+  Wants, or Savings (nullable — categories are user-defined, so the app
+  can't auto-classify one); the check compares logged spending in each
+  tagged bucket, plus goal contributions counting automatically toward
+  savings, against the 50/30/20 targets. After-tax income reuses the
+  Phase 4 mixed-income take-home figure. Signed delta in percentage
+  points per bucket, informational only — no prescriptive messaging.
+- **Recurring bill tracker**: a genuinely new table (`recurring_bills`)
+  — distinct from spending entries, since a bill is an *expected* future
+  cost, not something that already happened. Manual add/delete, upcoming
+  bills due within 30 days (overdue and due-within-7-days visually
+  distinguished), and a running total-monthly-commitment figure
+  normalized across weekly/monthly/annual frequencies.
+- **Decision, documented**: no automatic nudge when a bill becomes due
+  this phase (would duplicate the Phase 1 goal-nudge infrastructure for
+  a second consumer rather than justify generalizing it — a reasonable
+  v2 addition). Instead, a one-click "Mark as paid" logs a spending
+  entry and advances the due date in a single explicit action.
+- Migration 0006: `spending_categories.budget_group` (additive) and the
+  new `recurring_bills` table.
+- 18 new unit tests (151 total).
+- 5 new Playwright e2e tests (41 total, 40 passing without the one
+  Supabase-email-rate-limited exception).
+
+This closes out the full Phase 1-6 backlog except for three deliberately
+deferred items: Open Banking (needs a live provider decision), shared
+household goals (real data-model implications not yet decided), and
+anonymous savings benchmarking (needs real aggregate UK data, not
+placeholder numbers).
+
 ## [0.5.0] - 2026-08-21
 
 Phase 5 (Car & house extras): lease vs finance vs cash comparison,
@@ -235,7 +272,8 @@ accurate take-home pay, create and fund savings goals.
   creation/funding/deletion against a real dev server and the live
   Supabase project.
 
-[Unreleased]: https://github.com/vsalihu/reckon/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/vsalihu/reckon/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/vsalihu/reckon/releases/tag/v0.6.0
 [0.5.0]: https://github.com/vsalihu/reckon/releases/tag/v0.5.0
 [0.4.0]: https://github.com/vsalihu/reckon/releases/tag/v0.4.0
 [0.3.0]: https://github.com/vsalihu/reckon/releases/tag/v0.3.0
