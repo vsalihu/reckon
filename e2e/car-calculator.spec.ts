@@ -35,7 +35,9 @@ test.describe("car cost calculator", () => {
     const card = page.getByText("Used Golf").locator("xpath=ancestor::li");
     await expect(card).toBeVisible();
     // total = 500 (finance) + 50 (insurance) + 10 (road tax) + 90 (fuel) = 650
-    await expect(card.getByText("£650")).toBeVisible();
+    // Scoped to the summary <dl> — the collapsed ownership-comparison
+    // <details> below it can independently contain the same £650 figure.
+    await expect(card.locator("dl").getByText("£650")).toBeVisible();
 
     await card.getByRole("button", { name: "Delete Used Golf" }).click();
     await expect(page.getByText("Used Golf")).not.toBeVisible();
