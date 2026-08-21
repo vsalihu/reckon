@@ -3,7 +3,13 @@ import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/lib/auth/actions";
 import { SubmitButton } from "@/components/submit-button";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { SUPPORTED_CURRENCIES } from "@/lib/currency";
+import { ProgressGauge } from "@/components/progress-gauge";
+import { TargetForm } from "@/components/income/target-form";
+import { EntryForm } from "@/components/income/entry-form";
+import { EntryList } from "@/components/income/entry-list";
+import { TakeHomeCard } from "@/components/income/take-home-card";
+import { SUPPORTED_CURRENCIES, type CurrencyCode } from "@/lib/currency";
+import { CURRENT_UK_TAX_YEAR } from "@/lib/tax";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -17,10 +23,26 @@ export default async function DashboardPage() {
 
   if (!profile) redirect("/onboarding/currency");
 
-  const currency = SUPPORTED_CURRENCIES.find((c) => c.code === profile.currency);
+  const currency = (SUPPORTED_CURRENCIES.find((c) => c.code === profile.currency)?.code ?? profile.currency) as CurrencyCode;
+
+  const [{ data: target }, { data: entries }] = await Promise.all([
+    supabase
+      .from("income_targets")
+      .select("annual_gross_amount")
+      .eq("user_id", user.id)
+      .eq("tax_year", CURRENT_UK_TAX_YEAR.taxYear)
+      .maybeSingle(),
+    supabase
+      .from("income_entries")
+      .select("id, label, amount, entry_date")
+      .eq("user_id", user.id)
+      .order("entry_date", { ascending: false }),
+  ]);
+
+  const loggedTotal = (entries ?? []).reduce((sum, entry) => sum + Number(entry.amount), 0);
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-8 px-4 py-10">
+    <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 py-10">
       <header className="flex items-center justify-between">
         <div>
           <p className="font-display text-2xl text-foreground">Reckon</p>
@@ -29,19 +51,42 @@ export default async function DashboardPage() {
         <ThemeToggle />
       </header>
 
-      <div className="rounded-2xl border border-border bg-surface p-6">
-        <p className="text-sm text-foreground-muted">Tracking in</p>
-        <p className="font-numeric text-xl text-foreground">
-          {currency ? `${currency.symbol} ${currency.label} (${currency.code})` : profile.currency}
-        </p>
-      </div>
+      <section className="rounded-2xl border border-border bg-surface p-6">
+        <h2 className="mb-4 font-display text-lg text-foreground">Income this tax year</h2>
+        {target ? (
+          <ProgressGauge
+            current={loggedTotal}
+            target={Number(target.annual_gross_amount)}
+            currency={currency}
+            label={`Logged toward your ${CURRENT_UK_TAX_YEAR.taxYear} target`}
+          />
+        ) : (
+          <p className="mb-3 text-sm text-foreground-muted">Set your annual gross target to see progress here.</p>
+        )}
+        <details className="mt-4">
+          <summary className="cursor-pointer text-sm text-accent">
+            {target ? "Update target" : "Set target"}
+          </summary>
+          <div className="mt-3">
+            <TargetForm currentAmount={target ? Number(target.annual_gross_amount) : undefined} />
+          </div>
+        </details>
+      </section>
 
-      <p className="text-sm text-foreground-muted">
-        Income logging and savings goals land here next — auth and your profile are wired up and working.
-      </p>
+      <TakeHomeCard grossAnnual={target ? Number(target.annual_gross_amount) : 0} currency={currency} />
+
+      <section className="rounded-2xl border border-border bg-surface p-6">
+        <h2 className="mb-4 font-display text-lg text-foreground">Log a pay entry</h2>
+        <EntryForm />
+      </section>
+
+      <section className="rounded-2xl border border-border bg-surface p-6">
+        <h2 className="mb-2 font-display text-lg text-foreground">Pay entries</h2>
+        <EntryList entries={entries ?? []} currency={currency} />
+      </section>
 
       <form action={signOut} className="mt-auto">
-        <SubmitButton className="bg-transparent border border-border text-foreground hover:opacity-100 hover:border-negative hover:text-negative">
+        <SubmitButton className="border border-border bg-transparent text-foreground hover:border-negative hover:text-negative hover:opacity-100">
           Sign out
         </SubmitButton>
       </form>
