@@ -91,7 +91,7 @@ export default async function DashboardPage() {
           <p className="mb-3 text-sm text-foreground-muted">Set your annual gross target to see progress here.</p>
         )}
         <details className="mt-4">
-          <summary className="cursor-pointer text-sm text-accent">
+          <summary data-testid="toggle-target-form" className="cursor-pointer text-sm text-accent">
             {target ? "Update target" : "Set target"}
           </summary>
           <div className="mt-3">
