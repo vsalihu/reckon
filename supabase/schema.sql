@@ -37,6 +37,10 @@ create table if not exists public.profiles (
   id uuid primary key references auth.users (id) on delete cascade,
   currency text not null check (currency in ('GBP', 'USD')),
   display_name text,
+  -- flat % of PAYE gross only, per the brief's scope decision — see
+  -- migrations/0004 and docs/mixed-income-tax.md.
+  pension_contribution_percent numeric(5, 2) not null default 0
+    check (pension_contribution_percent >= 0 and pension_contribution_percent <= 100),
   created_at timestamptz not null default now()
 );
 
@@ -72,6 +76,12 @@ create policy "income targets are owner-only" on public.income_targets
 
 -- ============================================================
 -- income_entries — individually logged pay entries
+--
+-- employment_type is per entry, not per account (brief's explicit scope
+-- decision): a user can log some entries PAYE and others self-employed
+-- within the same tax year. Annual PAYE/self-employed totals for tax
+-- purposes are aggregated from these rows grouped by this column — see
+-- docs/mixed-income-tax.md.
 -- ============================================================
 create table if not exists public.income_entries (
   id uuid primary key default gen_random_uuid(),
@@ -79,6 +89,7 @@ create table if not exists public.income_entries (
   label text not null,
   amount numeric(12, 2) not null check (amount > 0),
   entry_date date not null,
+  employment_type text not null default 'paye' check (employment_type in ('paye', 'self_employed')),
   created_at timestamptz not null default now()
 );
 
