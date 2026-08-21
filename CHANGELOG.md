@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Email/password and Google OAuth sign-up/sign-in via Supabase Auth, with
+  currency chosen once at signup and fixed for the account. Verified
+  end-to-end (including RLS) against the live Supabase project.
+
 - Project scaffold: Next.js 16 (App Router) + TypeScript, Tailwind v4.
 - Dark navy / brass-gold "ledger" design system with light/dark mode toggle
   (`next-themes`), serif display type (Fraunces) + monospace numerals (IBM
