@@ -50,6 +50,10 @@ export function CreateGoalForm() {
           />
         </div>
       </div>
+      <label className="flex items-center gap-2 text-sm text-foreground">
+        <input type="checkbox" name="is_lisa" className="h-4 w-4 accent-accent" />
+        This is a Lifetime ISA (LISA) — track the 25% government bonus
+      </label>
       {state.error ? <p className="text-sm text-negative">{state.error}</p> : null}
       <SubmitButton>Create goal</SubmitButton>
     </form>

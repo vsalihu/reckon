@@ -10,6 +10,7 @@ import { formatCurrency, type CurrencyCode } from "@/lib/currency";
 import { calculateSuggestedContribution } from "@/lib/goals/suggested-contribution";
 import { calculateGoalStreak } from "@/lib/goals/streak";
 import { findNewlyCrossedMilestones } from "@/lib/goals/milestones";
+import { calculateLisaBonus } from "@/lib/lisa";
 import type { GoalStatus } from "@/lib/goals/evaluate-goals";
 
 export interface GoalRow {
@@ -19,6 +20,7 @@ export interface GoalRow {
   deadline: string;
   created_at: string;
   celebrated_milestones: number[];
+  is_lisa: boolean;
 }
 
 export interface ContributionRow {
@@ -108,14 +110,16 @@ export function GoalList({
           alreadyContributed: contributedTotal,
           deadline: new Date(goal.deadline),
         });
+        const goalContributions = contributions
+          .filter((c) => c.goal_id === goal.id)
+          .map((c) => ({ amount: c.amount, contributedAt: new Date(c.contributed_at) }));
         const streak = calculateGoalStreak({
           targetAmount: goal.target_amount,
           createdAt: new Date(goal.created_at),
           deadline: new Date(goal.deadline),
-          contributions: contributions
-            .filter((c) => c.goal_id === goal.id)
-            .map((c) => ({ amount: c.amount, contributedAt: new Date(c.contributed_at) })),
+          contributions: goalContributions,
         });
+        const lisaBonus = goal.is_lisa ? calculateLisaBonus(goalContributions) : null;
 
         return (
           <li
@@ -136,6 +140,9 @@ export function GoalList({
                   {formatCurrency(suggestion.weeklyAmount, currency)}/week
                   {streak.currentStreakWeeks > 0 ? (
                     <span className="text-accent"> · 🔥 {streak.currentStreakWeeks}wk streak</span>
+                  ) : null}
+                  {lisaBonus && lisaBonus.totalBonus > 0 ? (
+                    <span className="text-positive"> · 🏦 +{formatCurrency(lisaBonus.totalBonus, currency)} LISA bonus</span>
                   ) : null}
                 </p>
               </div>

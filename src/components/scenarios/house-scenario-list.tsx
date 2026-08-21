@@ -1,6 +1,7 @@
 import { calculateHouseMonthlyCost, type HouseCostInput } from "@/lib/finance/house-costs";
 import { deleteHouseScenario, linkHouseScenarioToGoal, createGoalFromHouseScenario } from "@/lib/scenarios/house-actions";
 import { ScenarioGoalLink, type GoalOption } from "@/components/scenarios/scenario-goal-link";
+import { MortgageOverpaymentForm } from "@/components/scenarios/mortgage-overpayment-form";
 import { formatCurrency, type CurrencyCode } from "@/lib/currency";
 
 export interface HouseScenarioRow {
@@ -15,6 +16,9 @@ export interface HouseScenarioRow {
   term_years: number | null;
   buildings_insurance_annual: number | null;
   council_tax_annual: number | null;
+  overpayment_monthly: number | null;
+  overpayment_lump_sum: number | null;
+  overpayment_lump_sum_month: number | null;
   linked_goal_id: string | null;
 }
 
@@ -111,6 +115,24 @@ export function HouseScenarioList({
               {formatCurrency(cost.totalMonthly, currency)}/mo
             </dd>
           </dl>
+
+          {scenario.mode === "mortgage" ? (
+            <details className="mt-3">
+              <summary className="cursor-pointer text-sm text-accent">Overpayment calculator</summary>
+              <MortgageOverpaymentForm
+                scenario={{
+                  id: scenario.id,
+                  loan_amount: scenario.loan_amount ?? 0,
+                  interest_rate_apr: scenario.interest_rate_apr ?? 0,
+                  term_years: scenario.term_years ?? 1,
+                  overpayment_monthly: scenario.overpayment_monthly,
+                  overpayment_lump_sum: scenario.overpayment_lump_sum,
+                  overpayment_lump_sum_month: scenario.overpayment_lump_sum_month,
+                }}
+                currency={currency}
+              />
+            </details>
+          ) : null}
 
           <div className="mt-3">
             <ScenarioGoalLink

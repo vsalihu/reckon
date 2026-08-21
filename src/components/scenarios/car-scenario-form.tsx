@@ -93,6 +93,20 @@ export function CarScenarioForm() {
           </label>
           <input id="mot_due_date" name="mot_due_date" type="date" className={fieldClass} />
         </div>
+        <div>
+          <label htmlFor="lease_monthly_quote" className={labelClass}>
+            Lease quote / month (optional)
+          </label>
+          <input
+            id="lease_monthly_quote"
+            name="lease_monthly_quote"
+            type="number"
+            min="0"
+            step="0.01"
+            placeholder="If comparing against a lease deal"
+            className={fieldClass}
+          />
+        </div>
       </div>
 
       {state.error ? <p className="text-sm text-negative">{state.error}</p> : null}

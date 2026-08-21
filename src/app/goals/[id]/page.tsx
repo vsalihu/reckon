@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { AppHeader } from "@/components/app-header";
 import { ProgressGauge } from "@/components/progress-gauge";
 import { WhatIfSlider } from "@/components/goals/what-if-slider";
+import { LisaBonusCard } from "@/components/goals/lisa-bonus-card";
 import { calculateSuggestedContribution } from "@/lib/goals/suggested-contribution";
 import { calculateGoalStreak } from "@/lib/goals/streak";
 import { SUPPORTED_CURRENCIES, type CurrencyCode } from "@/lib/currency";
@@ -22,7 +23,7 @@ export default async function GoalDetailPage({ params }: PageProps<"/goals/[id]"
 
   const { data: goal } = await supabase
     .from("goals")
-    .select("id, name, target_amount, deadline, created_at")
+    .select("id, name, target_amount, deadline, created_at, is_lisa")
     .eq("id", id)
     .eq("owner_id", user.id)
     .maybeSingle();
@@ -71,6 +72,16 @@ export default async function GoalDetailPage({ params }: PageProps<"/goals/[id]"
       </section>
 
       <WhatIfSlider remainingAmount={remainingAmount} suggestedWeekly={suggestion.weeklyAmount} currency={currency} />
+
+      {goal.is_lisa ? (
+        <LisaBonusCard
+          contributions={(contributions ?? []).map((c) => ({
+            amount: Number(c.amount),
+            contributedAt: new Date(c.contributed_at),
+          }))}
+          currency={currency}
+        />
+      ) : null}
     </div>
   );
 }

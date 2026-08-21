@@ -71,6 +71,40 @@ export async function createHouseScenario(_prevState: ActionState, formData: For
   return {};
 }
 
+/** Persists overpayment settings for a mortgage-mode scenario — see docs/car-house-costs.md. */
+export async function setHouseOverpayment(_prevState: ActionState, formData: FormData): Promise<ActionState> {
+  const scenarioId = String(formData.get("scenario_id") ?? "");
+  const overpaymentMonthly = parseNonNegativeNumber(formData, "overpayment_monthly") ?? 0;
+  const lumpSum = parseNonNegativeNumber(formData, "overpayment_lump_sum") ?? 0;
+  const lumpSumMonthRaw = String(formData.get("overpayment_lump_sum_month") ?? "").trim();
+  const lumpSumMonth = lumpSumMonthRaw ? Number(lumpSumMonthRaw) : null;
+
+  if (!scenarioId) return { error: "Missing scenario." };
+  if (lumpSum > 0 && (lumpSumMonth === null || !Number.isInteger(lumpSumMonth) || lumpSumMonth < 1)) {
+    return { error: "Enter which month the lump sum is paid (1 or more)." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "You need to be signed in." };
+
+  const { error } = await supabase
+    .from("house_scenarios")
+    .update({
+      overpayment_monthly: overpaymentMonthly,
+      overpayment_lump_sum: lumpSum,
+      overpayment_lump_sum_month: lumpSum > 0 ? lumpSumMonth : null,
+    })
+    .eq("id", scenarioId)
+    .eq("user_id", user.id);
+  if (error) return { error: error.message };
+
+  revalidatePath("/calculators/house");
+  return {};
+}
+
 export async function deleteHouseScenario(scenarioId: string): Promise<void> {
   const supabase = await createClient();
   await supabase.from("house_scenarios").delete().eq("id", scenarioId);

@@ -1,6 +1,7 @@
 import { calculateCarMonthlyCost } from "@/lib/finance/car-costs";
 import { deleteCarScenario, linkCarScenarioToGoal, createGoalFromCarScenario } from "@/lib/scenarios/car-actions";
 import { ScenarioGoalLink, type GoalOption } from "@/components/scenarios/scenario-goal-link";
+import { CarOwnershipComparisonTable } from "@/components/scenarios/car-ownership-comparison-table";
 import { formatCurrency, type CurrencyCode } from "@/lib/currency";
 
 export interface CarScenarioRow {
@@ -14,6 +15,7 @@ export interface CarScenarioRow {
   road_tax_annual: number;
   fuel_maintenance_monthly: number;
   mot_due_date: string | null;
+  lease_monthly_quote: number | null;
   linked_goal_id: string | null;
 }
 
@@ -94,6 +96,11 @@ export function CarScenarioList({
               MOT due {new Date(scenario.mot_due_date).toLocaleDateString("en-GB")}
             </p>
           ) : null}
+
+          <details className="mt-3">
+            <summary className="cursor-pointer text-sm text-accent">Compare cash / finance / lease</summary>
+            <CarOwnershipComparisonTable scenario={scenario} currency={currency} />
+          </details>
 
           <div className="mt-3">
             <ScenarioGoalLink

@@ -21,7 +21,7 @@ export default async function CarCalculatorPage() {
     supabase
       .from("car_scenarios")
       .select(
-        "id, name, price, deposit, apr, term_months, insurance_annual, road_tax_annual, fuel_maintenance_monthly, mot_due_date, linked_goal_id",
+        "id, name, price, deposit, apr, term_months, insurance_annual, road_tax_annual, fuel_maintenance_monthly, mot_due_date, lease_monthly_quote, linked_goal_id",
       )
       .eq("user_id", user.id)
       .order("created_at", { ascending: false }),
@@ -49,6 +49,7 @@ export default async function CarCalculatorPage() {
           insurance_annual: Number(s.insurance_annual),
           road_tax_annual: Number(s.road_tax_annual),
           fuel_maintenance_monthly: Number(s.fuel_maintenance_monthly),
+          lease_monthly_quote: s.lease_monthly_quote === null ? null : Number(s.lease_monthly_quote),
         }))}
         goals={goals ?? []}
         currency={currency}

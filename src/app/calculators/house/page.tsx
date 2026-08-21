@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { AppHeader } from "@/components/app-header";
 import { HouseScenarioForm } from "@/components/scenarios/house-scenario-form";
 import { HouseScenarioList } from "@/components/scenarios/house-scenario-list";
+import { StampDutyCalculator } from "@/components/stamp-duty/stamp-duty-calculator";
 import { SUPPORTED_CURRENCIES, type CurrencyCode } from "@/lib/currency";
 
 export default async function HouseCalculatorPage() {
@@ -21,7 +22,7 @@ export default async function HouseCalculatorPage() {
     supabase
       .from("house_scenarios")
       .select(
-        "id, name, mode, monthly_rent, monthly_bills, council_tax_monthly, loan_amount, interest_rate_apr, term_years, buildings_insurance_annual, council_tax_annual, linked_goal_id",
+        "id, name, mode, monthly_rent, monthly_bills, council_tax_monthly, loan_amount, interest_rate_apr, term_years, buildings_insurance_annual, council_tax_annual, overpayment_monthly, overpayment_lump_sum, overpayment_lump_sum_month, linked_goal_id",
       )
       .eq("user_id", user.id)
       .order("created_at", { ascending: false }),
@@ -48,6 +49,9 @@ export default async function HouseCalculatorPage() {
           interest_rate_apr: s.interest_rate_apr === null ? null : Number(s.interest_rate_apr),
           buildings_insurance_annual: s.buildings_insurance_annual === null ? null : Number(s.buildings_insurance_annual),
           council_tax_annual: s.council_tax_annual === null ? null : Number(s.council_tax_annual),
+          overpayment_monthly: s.overpayment_monthly === null ? null : Number(s.overpayment_monthly),
+          overpayment_lump_sum: s.overpayment_lump_sum === null ? null : Number(s.overpayment_lump_sum),
+          overpayment_lump_sum_month: s.overpayment_lump_sum_month,
         }))}
         goals={goals ?? []}
         currency={currency}
@@ -57,6 +61,8 @@ export default async function HouseCalculatorPage() {
         <h2 className="mb-4 font-display text-lg text-foreground">New scenario</h2>
         <HouseScenarioForm />
       </section>
+
+      <StampDutyCalculator />
     </div>
   );
 }

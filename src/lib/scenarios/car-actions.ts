@@ -21,6 +21,8 @@ export async function createCarScenario(_prevState: ActionState, formData: FormD
   const roadTaxAnnual = parsePositiveNumber(formData, "road_tax_annual");
   const fuelMaintenanceMonthly = parsePositiveNumber(formData, "fuel_maintenance_monthly");
   const motDueDate = String(formData.get("mot_due_date") ?? "") || null;
+  const leaseMonthlyQuoteRaw = String(formData.get("lease_monthly_quote") ?? "").trim();
+  const leaseMonthlyQuote = leaseMonthlyQuoteRaw ? parsePositiveNumber(formData, "lease_monthly_quote") : null;
 
   if (!name) return { error: "Give this scenario a name." };
   if (price === null) return { error: "Enter a valid price." };
@@ -31,6 +33,7 @@ export async function createCarScenario(_prevState: ActionState, formData: FormD
   if (insuranceAnnual === null) return { error: "Enter a valid annual insurance cost." };
   if (roadTaxAnnual === null) return { error: "Enter a valid annual road tax." };
   if (fuelMaintenanceMonthly === null) return { error: "Enter a valid monthly fuel/maintenance cost." };
+  if (leaseMonthlyQuoteRaw && leaseMonthlyQuote === null) return { error: "Enter a valid lease quote, or leave it blank." };
 
   const supabase = await createClient();
   const {
@@ -49,6 +52,7 @@ export async function createCarScenario(_prevState: ActionState, formData: FormD
     road_tax_annual: roadTaxAnnual,
     fuel_maintenance_monthly: fuelMaintenanceMonthly,
     mot_due_date: motDueDate,
+    lease_monthly_quote: leaseMonthlyQuote,
   });
 
   if (error) return { error: error.message };

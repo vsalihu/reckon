@@ -8,6 +8,7 @@ export async function createGoal(_prevState: AuthActionState, formData: FormData
   const name = String(formData.get("name") ?? "").trim();
   const targetAmount = Number(formData.get("target_amount"));
   const deadline = String(formData.get("deadline") ?? "");
+  const isLisa = formData.get("is_lisa") === "on";
 
   if (!name) return { error: "Give your goal a name." };
   if (!Number.isFinite(targetAmount) || targetAmount <= 0) return { error: "Enter a valid target amount." };
@@ -35,6 +36,7 @@ export async function createGoal(_prevState: AuthActionState, formData: FormData
     target_amount: targetAmount,
     deadline,
     priority: nextPriority,
+    is_lisa: isLisa,
   });
 
   if (error) return { error: error.message };
