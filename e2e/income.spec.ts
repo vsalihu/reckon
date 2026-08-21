@@ -27,8 +27,10 @@ test.describe("income tracking", () => {
     await page.getByRole("button", { name: "Set target" }).click();
 
     await expect(page.getByText(/of £40,000/)).toBeVisible(); // gauge target label
-    // Take-home estimate should now show a non-zero net figure for a £40k salary.
-    await expect(page.getByText("Net (take-home)")).toBeVisible();
+    // The take-home estimate is driven by logged entries (aggregated by
+    // employment type, Phase 4), not the target — so before logging
+    // anything it shows a prompt rather than a breakdown.
+    await expect(page.getByText("Log a pay entry to see your take-home estimate")).toBeVisible();
 
     await page.getByLabel("Label").fill("October salary");
     await page.getByLabel("Amount", { exact: true }).fill("2500");
@@ -37,5 +39,7 @@ test.describe("income tracking", () => {
     await expect(page.getByText("October salary")).toBeVisible();
     // The entry amount appears both in the entry list and the gauge's current-total span.
     await expect(page.getByText("£2,500").first()).toBeVisible();
+    // Logging a (default PAYE) entry now populates the take-home breakdown.
+    await expect(page.getByText("Net (take-home)")).toBeVisible();
   });
 });
