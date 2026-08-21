@@ -23,7 +23,7 @@ test.describe("spending tracking", () => {
 
   test("creating a custom category and logging spending against it", async ({ page }) => {
     await page.getByLabel("New category").fill("Groceries");
-    await page.getByRole("button", { name: "Add" }).click();
+    await page.getByRole("button", { name: "Add", exact: true }).click();
     await expect(page.getByRole("button", { name: "Delete category Groceries" })).toBeVisible();
 
     await page.getByLabel("Label").fill("Weekly shop");

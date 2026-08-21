@@ -27,7 +27,7 @@ export function RecurringBillForm() {
         </div>
         <div>
           <label htmlFor="bill-amount" className="mb-1.5 block text-sm text-foreground-muted">
-            Amount
+            Bill amount
           </label>
           <input
             id="bill-amount"

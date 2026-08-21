@@ -17,7 +17,7 @@ export function BudgetRuleCard({ input, currency }: { input: BudgetRuleInput; cu
       ) : (
         <div className="flex flex-col gap-3">
           {result.buckets.map((bucket) => (
-            <div key={bucket.label}>
+            <div key={bucket.label} data-testid={`budget-bucket-${bucket.label.toLowerCase()}`}>
               <div className="mb-1 flex items-baseline justify-between text-sm">
                 <span className="text-foreground">
                   {bucket.label} <span className="text-foreground-muted">(target {bucket.targetPercent}%)</span>
