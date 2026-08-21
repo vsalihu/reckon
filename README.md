@@ -6,12 +6,12 @@ a house deposit, whatever's next). Log what you earn, log what you save, and
 see clearly whether your saving rate is actually keeping pace with your
 income, not just the calendar.
 
-**Status:** [v0.1.0](https://github.com/vsalihu/reckon/releases/tag/v0.1.0) —
-the Phase 1 core loop (auth, income logging, take-home estimate, savings
-goals with nudges) is built and verified against the live Supabase project.
-Not yet deployed to production. Google OAuth is implemented but not yet
-enabled (needs a Google Cloud OAuth client configured in the Supabase
-dashboard).
+**Status:** [v0.2.0](https://github.com/vsalihu/reckon/releases/tag/v0.2.0) —
+Phase 1 (auth, income logging, take-home estimate, savings goals with
+nudges) and Phase 2 (car/house cost calculators, spending tracking, overview
+dashboard) are built and verified against the live Supabase project. Not yet
+deployed to production. Google OAuth is implemented but not yet enabled
+(needs a Google Cloud OAuth client configured in the Supabase dashboard).
 
 ## Stack
 
@@ -66,7 +66,8 @@ src/
     goals/           # savings goal logic (pace, "behind on goal" formula)
     supabase/        # Supabase client factories (browser / server / service-role)
 supabase/
-  schema.sql         # Phase 1 database schema + RLS policies
+  schema.sql         # full database schema + RLS policies (current state)
+  migrations/        # incremental changes applied on top of schema.sql, in order
 docs/
   behind-on-goal.md  # the exact "behind on goal" formula and its rationale
 e2e/                 # Playwright end-to-end tests
@@ -105,17 +106,23 @@ Commit messages follow [Conventional Commits](https://www.conventionalcommits.or
 
 ## Roadmap
 
-Phase 1 (current): auth, manual income logging with UK take-home estimate,
-multi-goal savings tracking with drag-reorderable priority, manual
+Phase 1 (done, v0.1.0): auth, manual income logging with UK take-home
+estimate, multi-goal savings tracking with drag-reorderable priority, manual
 contribution logging, and "behind on goal" nudges (in-app + email).
 
-Phase 2+ (schema-planned, not yet built): car/house cost calculators,
-goal-linked cost scenarios, user-defined spending categories, an overview
-dashboard, and UK Open Banking integration.
+Phase 2 (done, v0.2.0): car and house cost calculators (loan amortization,
+multi-scenario comparison, goal linking), user-defined spending categories
+with manual entries, and an overview dashboard pulling income, goals,
+spending, and scenarios together with charts.
+
+Phase 2.5+ (not yet built): UK Open Banking integration for spending — see
+`docs/car-house-costs.md` and the schema's `source`/`external_transaction_id`
+columns on `spending_entries` for how that's meant to slot in without a
+restructure.
 
 A larger backlog beyond that (streaks, milestone celebrations, payslip
 comparison, mortgage tools, shared household goals, and more) is tracked
-internally and will be prioritized once the Phase 1 core is live and in
+internally and will be prioritized once the core product is live and in
 real use.
 
 ## License

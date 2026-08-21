@@ -23,6 +23,20 @@
   --accent-foreground: var(--color-ink);
   --positive: #2f7a52;
   --negative: #b3452f;
+
+  /* categorical chart palette — validated via dataviz skill's
+     validate_palette.js against this surface (#ffffff); fixed hue order,
+     never cycled or reassigned by data. WARN on contrast for 3 slots is
+     resolved by always pairing bars with a visible direct label. */
+  --viz-1: #2a78d6;
+  --viz-2: #eb6834;
+  --viz-3: #1baf7a;
+  --viz-4: #eda100;
+  --viz-5: #e87ba4;
+  --viz-6: #008300;
+  --viz-7: #4a3aa7;
+  --viz-8: #e34948;
+  --viz-other: var(--foreground-muted);
 }
 
 :root[data-theme="dark"] {
@@ -36,6 +50,17 @@
   --accent-foreground: var(--color-ink);
   --positive: #5fbf8f;
   --negative: #e07a5f;
+
+  /* dark-surface steps of the same 8 hues — validated against #142a3f */
+  --viz-1: #3987e5;
+  --viz-2: #d95926;
+  --viz-3: #199e70;
+  --viz-4: #c98500;
+  --viz-5: #d55181;
+  --viz-6: #008300;
+  --viz-7: #9085e9;
+  --viz-8: #e66767;
+  --viz-other: var(--foreground-muted);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -50,6 +75,15 @@
     --accent-foreground: var(--color-ink);
     --positive: #5fbf8f;
     --negative: #e07a5f;
+    --viz-1: #3987e5;
+    --viz-2: #d95926;
+    --viz-3: #199e70;
+    --viz-4: #c98500;
+    --viz-5: #d55181;
+    --viz-6: #008300;
+    --viz-7: #9085e9;
+    --viz-8: #e66767;
+    --viz-other: var(--foreground-muted);
   }
 }
 

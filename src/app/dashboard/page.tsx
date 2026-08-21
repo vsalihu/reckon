@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/lib/auth/actions";
 import { SubmitButton } from "@/components/submit-button";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { AppHeader } from "@/components/app-header";
 import { ProgressGauge } from "@/components/progress-gauge";
 import { TargetForm } from "@/components/income/target-form";
 import { EntryForm } from "@/components/income/entry-form";
@@ -70,13 +70,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 py-10">
-      <header className="flex items-center justify-between">
-        <div>
-          <p className="font-display text-2xl text-foreground">Reckon</p>
-          <p className="text-sm text-foreground-muted">{user.email}</p>
-        </div>
-        <ThemeToggle />
-      </header>
+      <AppHeader email={user.email} />
 
       <section className="rounded-2xl border border-border bg-surface p-6">
         <h2 className="mb-4 font-display text-lg text-foreground">Income this tax year</h2>
