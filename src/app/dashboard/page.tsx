@@ -42,7 +42,7 @@ export default async function DashboardPage() {
       .order("entry_date", { ascending: false }),
     supabase
       .from("goals")
-      .select("id, name, target_amount, deadline, priority, created_at")
+      .select("id, name, target_amount, deadline, priority, created_at, celebrated_milestones")
       .eq("owner_id", user.id)
       .order("priority", { ascending: true }),
     supabase.from("goal_contributions").select("goal_id, amount, contributed_at").eq("user_id", user.id),
@@ -114,8 +114,15 @@ export default async function DashboardPage() {
             name: g.name,
             target_amount: Number(g.target_amount),
             deadline: g.deadline,
+            created_at: g.created_at,
+            celebrated_milestones: g.celebrated_milestones ?? [],
           }))}
           statusByGoalId={statusByGoalId}
+          contributions={(contributions ?? []).map((c) => ({
+            goal_id: c.goal_id,
+            amount: Number(c.amount),
+            contributed_at: c.contributed_at,
+          }))}
           currency={currency}
         />
       </section>

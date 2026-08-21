@@ -1,11 +1,15 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { deleteGoal, reorderGoals } from "@/lib/goals/actions";
+import { useEffect, useState, useTransition } from "react";
+import Link from "next/link";
+import { toast } from "sonner";
+import { deleteGoal, reorderGoals, markMilestonesCelebrated } from "@/lib/goals/actions";
 import { ContributionForm } from "@/components/goals/contribution-form";
 import { ProgressGauge } from "@/components/progress-gauge";
 import { formatCurrency, type CurrencyCode } from "@/lib/currency";
 import { calculateSuggestedContribution } from "@/lib/goals/suggested-contribution";
+import { calculateGoalStreak } from "@/lib/goals/streak";
+import { findNewlyCrossedMilestones } from "@/lib/goals/milestones";
 import type { GoalStatus } from "@/lib/goals/evaluate-goals";
 
 export interface GoalRow {
@@ -13,6 +17,14 @@ export interface GoalRow {
   name: string;
   target_amount: number;
   deadline: string;
+  created_at: string;
+  celebrated_milestones: number[];
+}
+
+export interface ContributionRow {
+  goal_id: string | null;
+  amount: number;
+  contributed_at: string;
 }
 
 const STATUS_LABEL: Partial<Record<GoalStatus["result"]["status"], { text: string; tone: "negative" | "muted" }>> = {
@@ -23,10 +35,12 @@ const STATUS_LABEL: Partial<Record<GoalStatus["result"]["status"], { text: strin
 export function GoalList({
   goals,
   statusByGoalId,
+  contributions,
   currency,
 }: {
   goals: GoalRow[];
   statusByGoalId: Map<string, GoalStatus>;
+  contributions: ContributionRow[];
   currency: CurrencyCode;
 }) {
   const [orderedGoals, setOrderedGoals] = useState(goals);
@@ -43,6 +57,25 @@ export function GoalList({
     setPrevGoals(goals);
     setOrderedGoals(goals);
   }
+
+  // Milestone celebrations: a genuine side effect (toast + a mutation to
+  // persist which thresholds have fired), so this belongs in an effect,
+  // unlike the state-sync above. Runs once per goal list change; each
+  // already-celebrated threshold is skipped by findNewlyCrossedMilestones.
+  useEffect(() => {
+    for (const goal of goals) {
+      const contributedTotal = statusByGoalId.get(goal.id)?.contributedTotal ?? 0;
+      const newlyCrossed = findNewlyCrossedMilestones(contributedTotal, goal.target_amount, goal.celebrated_milestones);
+      if (newlyCrossed.length === 0) continue;
+
+      const highest = Math.max(...newlyCrossed);
+      toast.success(highest === 100 ? "Goal funded! 🎉" : `${highest}% funded`, {
+        description: `"${goal.name}" just crossed ${highest}%.`,
+      });
+      markMilestonesCelebrated(goal.id, newlyCrossed);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- goals/statusByGoalId are Server Component props, safe to key on the goal list identity alone
+  }, [goals]);
 
   if (orderedGoals.length === 0) {
     return <p className="text-sm text-foreground-muted">No goals yet — create one below.</p>;
@@ -75,6 +108,14 @@ export function GoalList({
           alreadyContributed: contributedTotal,
           deadline: new Date(goal.deadline),
         });
+        const streak = calculateGoalStreak({
+          targetAmount: goal.target_amount,
+          createdAt: new Date(goal.created_at),
+          deadline: new Date(goal.deadline),
+          contributions: contributions
+            .filter((c) => c.goal_id === goal.id)
+            .map((c) => ({ amount: c.amount, contributedAt: new Date(c.contributed_at) })),
+        });
 
         return (
           <li
@@ -87,10 +128,15 @@ export function GoalList({
           >
             <div className="mb-3 flex items-start justify-between gap-2">
               <div>
-                <p className="text-foreground">{goal.name}</p>
+                <Link href={`/goals/${goal.id}`} className="text-foreground hover:text-accent">
+                  {goal.name}
+                </Link>
                 <p className="text-xs text-foreground-muted">
                   Deadline {new Date(goal.deadline).toLocaleDateString("en-GB")} · suggested{" "}
                   {formatCurrency(suggestion.weeklyAmount, currency)}/week
+                  {streak.currentStreakWeeks > 0 ? (
+                    <span className="text-accent"> · 🔥 {streak.currentStreakWeeks}wk streak</span>
+                  ) : null}
                 </p>
               </div>
               <form action={deleteGoal.bind(null, goal.id)}>

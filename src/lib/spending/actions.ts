@@ -82,3 +82,48 @@ export async function deleteSpendingEntry(entryId: string): Promise<void> {
   revalidatePath("/spending");
   revalidatePath("/overview");
 }
+
+/**
+ * Manual round-up: logs the spare change from one spending entry as a
+ * contribution to a chosen goal. Stays manual and per-entry, per the
+ * brief — no automatic or retroactive round-up across spending.
+ */
+export async function logRoundUpContribution(_prevState: ActionState, formData: FormData): Promise<ActionState> {
+  const goalId = String(formData.get("goal_id") ?? "");
+  const roundUpAmount = Number(formData.get("round_up_amount"));
+  const spendingLabel = String(formData.get("spending_label") ?? "");
+  const originalAmount = Number(formData.get("original_amount"));
+  const roundedAmount = Number(formData.get("rounded_amount"));
+
+  if (!goalId) return { error: "Choose a goal to round up toward." };
+  if (!Number.isFinite(roundUpAmount) || roundUpAmount <= 0) return { error: "Nothing to round up here." };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "You need to be signed in." };
+
+  const { data: goal, error: goalError } = await supabase
+    .from("goals")
+    .select("name")
+    .eq("id", goalId)
+    .eq("owner_id", user.id)
+    .single();
+  if (goalError || !goal) return { error: "Couldn't find that goal." };
+
+  const { error } = await supabase.from("goal_contributions").insert({
+    user_id: user.id,
+    goal_id: goalId,
+    goal_name_snapshot: goal.name,
+    amount: roundUpAmount,
+    note: `Round-up from "${spendingLabel}" (${originalAmount.toFixed(2)} → ${roundedAmount.toFixed(2)})`,
+  });
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/spending");
+  revalidatePath("/dashboard");
+  revalidatePath("/overview");
+  return {};
+}

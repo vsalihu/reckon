@@ -19,13 +19,14 @@ export default async function SpendingPage() {
 
   const currency = (SUPPORTED_CURRENCIES.find((c) => c.code === profile.currency)?.code ?? profile.currency) as CurrencyCode;
 
-  const [{ data: categories }, { data: entries }] = await Promise.all([
+  const [{ data: categories }, { data: entries }, { data: goals }] = await Promise.all([
     supabase.from("spending_categories").select("id, name").eq("user_id", user.id).order("name", { ascending: true }),
     supabase
       .from("spending_entries")
       .select("id, label, amount, entry_date, category_name_snapshot")
       .eq("user_id", user.id)
       .order("entry_date", { ascending: false }),
+    supabase.from("goals").select("id, name").eq("owner_id", user.id).order("priority", { ascending: true }),
   ]);
 
   const entriesWithAmount = (entries ?? []).map((e) => ({ ...e, amount: Number(e.amount) }));
@@ -60,7 +61,7 @@ export default async function SpendingPage() {
             {new Intl.NumberFormat("en-GB", { style: "currency", currency }).format(total)} total
           </span>
         </div>
-        <SpendingEntryList entries={entriesWithAmount} currency={currency} />
+        <SpendingEntryList entries={entriesWithAmount} goals={goals ?? []} currency={currency} />
       </section>
     </div>
   );

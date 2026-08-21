@@ -74,6 +74,7 @@ export async function reorderGoals(orderedIds: string[]): Promise<void> {
 export async function logContribution(_prevState: AuthActionState, formData: FormData): Promise<AuthActionState> {
   const goalId = String(formData.get("goal_id") ?? "");
   const amount = Number(formData.get("amount"));
+  const note = String(formData.get("note") ?? "").trim() || null;
 
   if (!Number.isFinite(amount) || amount <= 0) return { error: "Enter a valid amount." };
 
@@ -97,10 +98,33 @@ export async function logContribution(_prevState: AuthActionState, formData: For
     goal_id: goalId,
     goal_name_snapshot: goal.name,
     amount,
+    note,
   });
 
   if (error) return { error: error.message };
 
   revalidatePath("/dashboard");
+  revalidatePath("/spending");
+  revalidatePath("/overview");
   return {};
+}
+
+/**
+ * Persists which milestones (25/50/75/100) have already triggered their
+ * one-time celebration, so the toast never re-fires for the same
+ * threshold — see src/lib/goals/milestones.ts and migrations/0003.
+ * Read-then-write (not an atomic array append): acceptable here since a
+ * single user only ever crosses their own goal's milestones from their
+ * own session, no meaningful concurrent-write risk.
+ */
+export async function markMilestonesCelebrated(goalId: string, newlyCrossed: number[]): Promise<void> {
+  if (newlyCrossed.length === 0) return;
+
+  const supabase = await createClient();
+  const { data: goal } = await supabase.from("goals").select("celebrated_milestones").eq("id", goalId).maybeSingle();
+  if (!goal) return;
+
+  const merged = Array.from(new Set([...(goal.celebrated_milestones ?? []), ...newlyCrossed]));
+  await supabase.from("goals").update({ celebrated_milestones: merged }).eq("id", goalId);
+  revalidatePath("/dashboard");
 }
