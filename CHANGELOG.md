@@ -7,6 +7,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-08-21
+
+Phase 3 (Goals & motivation): streaks, milestone celebrations, a "what if"
+contribution slider, and manual round-ups — all extensions of the existing
+goals system, no new tables.
+
+### Added
+
+- **Streaks**: goal cards show a 🔥 current-streak badge for consecutive
+  weeks where contributions met or exceeded that week's suggested pace.
+  Weekly buckets counted from goal creation (not calendar weeks); each
+  week's required pace is recomputed via the existing
+  `calculateSuggestedContribution`, so "met" means the same thing here as
+  everywhere else. Counts the trailing run from now backwards and floors
+  at 0 — a miss doesn't go negative, it resets.
+- **Milestone celebrations**: a one-time, non-blocking toast (Sonner,
+  styled to the ledger surfaces) fires the first time a goal crosses
+  25/50/75/100% funded. Persisted via `goals.celebrated_milestones` so it
+  never re-fires for a threshold already shown — including across a
+  contribution correction/deletion that dips the percentage back down and
+  crosses it again later.
+- **"What if" slider**: new `/goals/[id]` detail page with a live,
+  unsaved slider for weekly/monthly contribution amount that
+  recalculates the projected completion date on every move — the reverse
+  of the Phase 1 suggested-contribution formula (given a contribution,
+  solve for the date, instead of given a date, solve for the
+  contribution).
+- **Manual round-ups**: a spending entry with a non-whole amount gets an
+  inline "Round up +£X" control; picking a goal logs the spare change as
+  a contribution with a note recording its provenance
+  (`goal_contributions.note`). Stays manual and per-entry — no automatic
+  or retroactive round-up.
+- Migration 0003: two additive columns
+  (`goals.celebrated_milestones`, `goal_contributions.note`) — everything
+  else (streaks, the what-if projection) is computed from data the schema
+  already had.
+- 25 new unit tests (70 total): streak bucketing, milestone-crossing
+  diffing, the reverse contribution formula, and round-up rounding.
+- 9 new Playwright e2e tests (22 total, 21 passing without the one
+  Supabase-email-rate-limited exception): streak display against a
+  seeded backdated goal, one-time milestone toasts, live slider
+  exploration, and round-up logging.
+
 ## [0.2.0] - 2026-08-21
 
 Phase 2: car and house cost calculators, manual spending tracking, and an
@@ -100,6 +143,7 @@ accurate take-home pay, create and fund savings goals.
   creation/funding/deletion against a real dev server and the live
   Supabase project.
 
-[Unreleased]: https://github.com/vsalihu/reckon/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/vsalihu/reckon/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/vsalihu/reckon/releases/tag/v0.3.0
 [0.2.0]: https://github.com/vsalihu/reckon/releases/tag/v0.2.0
 [0.1.0]: https://github.com/vsalihu/reckon/releases/tag/v0.1.0

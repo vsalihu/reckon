@@ -6,12 +6,14 @@ a house deposit, whatever's next). Log what you earn, log what you save, and
 see clearly whether your saving rate is actually keeping pace with your
 income, not just the calendar.
 
-**Status:** [v0.2.0](https://github.com/vsalihu/reckon/releases/tag/v0.2.0) —
+**Status:** [v0.3.0](https://github.com/vsalihu/reckon/releases/tag/v0.3.0) —
 Phase 1 (auth, income logging, take-home estimate, savings goals with
-nudges) and Phase 2 (car/house cost calculators, spending tracking, overview
-dashboard) are built and verified against the live Supabase project. Not yet
-deployed to production. Google OAuth is implemented but not yet enabled
-(needs a Google Cloud OAuth client configured in the Supabase dashboard).
+nudges), Phase 2 (car/house cost calculators, spending tracking, overview
+dashboard), and Phase 3 (streaks, milestone celebrations, a "what if"
+contribution slider, manual round-ups) are built and verified against the
+live Supabase project. Not yet deployed to production. Google OAuth is
+implemented but not yet enabled (needs a Google Cloud OAuth client
+configured in the Supabase dashboard).
 
 ## Stack
 
@@ -115,15 +117,22 @@ multi-scenario comparison, goal linking), user-defined spending categories
 with manual entries, and an overview dashboard pulling income, goals,
 spending, and scenarios together with charts.
 
-Phase 2.5+ (not yet built): UK Open Banking integration for spending — see
-`docs/car-house-costs.md` and the schema's `source`/`external_transaction_id`
-columns on `spending_entries` for how that's meant to slot in without a
-restructure.
+Phase 3 (done, v0.3.0) — Goals & motivation: per-goal weekly streaks,
+one-time milestone celebrations at 25/50/75/100% funded, a live "what if"
+contribution slider on each goal's detail page, and manual round-ups from a
+spending entry to a goal. All built on the existing goals/contributions
+data — no new tables.
 
-A larger backlog beyond that (streaks, milestone celebrations, payslip
-comparison, mortgage tools, shared household goals, and more) is tracked
-internally and will be prioritized once the core product is live and in
-real use.
+Next up (not yet built), one backlog group at a time: Income & tax
+intelligence (payslip comparison, freelance mode, pension modelling, pay
+rise simulator), Car & house extras (lease-vs-finance, mortgage
+overpayment, stamp duty/LISA), and Spending & budgeting (50/30/20 check,
+recurring bill tracker) — followed eventually by UK Open Banking
+integration (see `docs/car-house-costs.md` and the
+`source`/`external_transaction_id` columns on `spending_entries` for how
+that's meant to slot in without a restructure), social/accountability
+features, and quality-of-life additions. Tracked internally and
+prioritized incrementally as the core product is live and in real use.
 
 ## License
 
