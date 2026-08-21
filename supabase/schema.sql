@@ -267,6 +267,10 @@ create table if not exists public.spending_categories (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users (id) on delete cascade,
   name text not null,
+  -- user-applied 50/30/20 tag — nullable, since categories are
+  -- user-defined and an untagged one is just excluded from the split
+  -- rather than forced into a bucket. See docs/budget-rule.md.
+  budget_group text check (budget_group is null or budget_group in ('needs', 'wants', 'savings')),
   created_at timestamptz not null default now(),
   unique (user_id, name)
 );
@@ -303,6 +307,31 @@ create policy "spending entries are owner-only" on public.spending_entries
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 -- ============================================================
+-- recurring_bills — expected recurring costs (rent, subscriptions,
+-- insurance). A distinct concept from spending_entries: this is a
+-- record of what's EXPECTED, not what happened. Manually maintained,
+-- no auto-charging or bank integration — see docs/recurring-bills.md.
+-- ============================================================
+create table if not exists public.recurring_bills (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  name text not null,
+  amount numeric(12, 2) not null check (amount > 0),
+  frequency text not null check (frequency in ('weekly', 'monthly', 'annually')),
+  next_due_date date not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists recurring_bills_user_id_idx on public.recurring_bills (user_id);
+create index if not exists recurring_bills_user_id_due_idx on public.recurring_bills (user_id, next_due_date);
+
+alter table public.recurring_bills enable row level security;
+
+create policy "recurring bills are owner-only" on public.recurring_bills
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- ============================================================
 -- updated_at trigger helper
 -- ============================================================
 create or replace function public.set_updated_at()
@@ -327,4 +356,8 @@ create trigger car_scenarios_set_updated_at
 
 create trigger house_scenarios_set_updated_at
   before update on public.house_scenarios
+  for each row execute function public.set_updated_at();
+
+create trigger recurring_bills_set_updated_at
+  before update on public.recurring_bills
   for each row execute function public.set_updated_at();
